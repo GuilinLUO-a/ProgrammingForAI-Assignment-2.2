@@ -2,8 +2,8 @@ import numpy as np
 from collections import deque
 
 class StreamMetrics:
-    def __init__(self, n_classes = 2, window_size=None):
-        self.n_class = n_classes
+    def __init__(self, n_class = 2, window_size=None):
+        self.n_class = n_class
         self.window_size = window_size
         self.cm = None # Confusion matrix
         self.n_correct = None
@@ -21,7 +21,7 @@ class StreamMetrics:
             raise ValueError("The shape of two arrays are not the same")    
 
         cm = np.bincount(self.n_class * y_true_chunk + y_pred_chunk, 
-                         minlength= self.n_class * self.n_class).shape(self.n_class, self.n_class)
+                         minlength= self.n_class * self.n_class).reshape(self.n_class, self.n_class)
 
         self.cm += cm
 
@@ -40,7 +40,7 @@ class StreamMetrics:
         self.n_samples = 0
         
         if self.window_size is not None:
-            self.rolling_cm = deque(maxlen=10)
+            self.rolling_cm = deque(maxlen=self.window_size)
 
         
         
@@ -91,7 +91,7 @@ class StreamMetrics:
         if self.rolling_cm is None:
             raise RuntimeError('You should input window_size first')
         
-        cm = self.rolling_cm
+        cm = np.sum(self.rolling_cm, axis=0)
         TP = np.diag(cm)
         FP = cm.sum(axis=0) - TP
         FN = cm.sum(axis=1) - TP
