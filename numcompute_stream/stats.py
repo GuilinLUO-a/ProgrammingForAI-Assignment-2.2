@@ -11,7 +11,7 @@ class StreamingStats:
         # self.values = None
         
     def update_stats(self,X_chunk):
-        X_chunk = np.asarray(dtype=float)
+        X_chunk = np.asarray(X_chunk, dtype=float)
         if self.n_features is None:
             self.n_features = X_chunk.shape[1]
             self.count = np.zeros(self.n_features)

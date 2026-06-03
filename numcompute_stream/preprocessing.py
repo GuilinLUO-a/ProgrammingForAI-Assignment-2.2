@@ -10,13 +10,15 @@ class Imputer:
         self.means = None
         self.categories_counts = None
         self.fill_values = None
+        self.stats = StreamingStats()
     
     def partial_fit(self,X_chunk):
         if X_chunk.size == 0:
             raise ValueError('The input data is empty')
         
         if self.strategy == 'mean':
-            means, _ = StreamingStats.get_meanVar()
+            self.stats.update_stats(X_chunk)
+            means, _ = self.stats.get_meanVar()
             self.means = means
             
         else:
@@ -40,10 +42,14 @@ class Imputer:
             ]
         
         return self
+    
+    def fit(self,X_chunk):
+        return self.partial_fit(X_chunk)
             
     def transform(self, X_chunk):
-        if self.means is None or self.fill_values is None:
-            raise RuntimeError('You should fit your data first')
+        if self.means is None :
+            if self.fill_values is None:
+                raise RuntimeError('You should fit your data first')
         
         X_chunk = X_chunk.copy()
             
@@ -67,8 +73,8 @@ class OneHotEncoder:
         self.locked = False
         
     
-    def fit(self):
-        pass
+    def fit(self,X_chunk):
+        return self.partial_fit(X_chunk)
     
     def partial_fit(self,X_chunk):
         if X_chunk.size == 0:
@@ -116,9 +122,11 @@ class StandardScaler:
         self.mean = None
         self.std = None
         self.n_features = None
+        self.stats = StreamingStats()
         
-    def fit(self):
-        pass
+    def fit(self,X_chunk):
+        return self.partial_fit(X_chunk)
+
     def partial_fit(self, X_chunk):
         X_chunk = X_chunk.copy()
         
@@ -133,7 +141,7 @@ class StandardScaler:
         if self.n_features is None:
             self.n_features = X_chunk.shape[1]
         
-        self.mean, variance = StreamingStats.get_meanVar()
+        self.mean, variance = self.stats.get_meanVar()
         std = np.sqrt(variance)
         self.std = std
         
