@@ -7,7 +7,7 @@ class PipeLine:
         self.label_encoder = LabelEncoder()
 
     def partial_fit(self, X, y):
-        self.label_encoder.partial_fit(X, y)
+        self.label_encoder.partial_fit(y)
         y_encoded = self.label_encoder.transform(y)
 
         transformers = self.steps[:-1]

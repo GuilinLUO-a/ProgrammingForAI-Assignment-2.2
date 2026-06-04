@@ -1,26 +1,30 @@
 import numpy as np
+from collections import deque
 
 class StreamingStats:
-    def __init__(self):
+    def __init__(self, window_size=None):
         self.n_features = None
         self.count = None
         self.mean = None
         self.m2 = None
 
+        self.window_size = window_size
+        self.chunk_values = None
         
-        # self.values = None
+        if window_size is not None:
+            self.chunk_buffer = deque(maxlen=window_size)
         
     def update_stats(self,X_chunk):
         X_chunk = np.asarray(X_chunk, dtype=float)
+
         if self.n_features is None:
             self.n_features = X_chunk.shape[1]
             self.count = np.zeros(self.n_features)
             self.mean = np.zeros(self.n_features)
             self.m2 = np.zeros(self.n_features)
             
-            
         self.update_meanVar(X_chunk)
-        # self.update_values(X_chunk)
+        self.update_chunk_values(X_chunk)
     
     def update_meanVar(self,X_chunk):
         
@@ -48,15 +52,12 @@ class StreamingStats:
         self.mean = mean_new
         self.m2 = m2_new
         
-    # def update_values(self,X_chunk):
-    #     if self.values is None:
-    #         self.values = X_chunk.T
-    #     else:
-    #         data = X_chunk.T
-    #         self.values = np.concatenate(self.values, data, axis=1)
+    def update_chunk_values(self, X_chunk):
+        self.chunk_values = X_chunk.T
         
-            
-    
+        if self.window_size is not None:
+            self.chunk_buffer.append(X_chunk)
+        
     def get_meanVar(self):
         if self.count is None:
             raise RuntimeError('The data has not been input yet')
@@ -64,20 +65,31 @@ class StreamingStats:
         variance = self.m2 / self.count
         return self.mean, variance
     
-    # def get_quantiles(self,quantiles):
-    #     if quantiles < 0 or quantiles > 1:
-    #         raise ValueError("The quantile value should be either greater than or equal to zero or less than or equal to one ")
+    def get_quantiles(self,quantiles):
+        if quantiles < 0 or quantiles > 1:
+            raise ValueError("The quantile value should be either greater than or equal to zero or less than or equal to one ")
+
+        if self.window_size is not None:
+            data = np.concatenate(list(self.chunk_buffer), axis=0)
+            return np.quantile(data, quantiles, axis=0)
         
-    #     return np.quantile(self.values, quantiles, axis=1)
+        return np.quantile(self.chunk_values, quantiles, axis=1)
     
-    # def get_histograms(self, bins=5):
-    #     histograms = []
+    def get_histograms(self, bins=5):
+        if self.window_size is not None:
+            data = np.concatenate(list(self.chunk_buffer), axis=0).T
+        else:
+            data = self.chunk_values
         
-    #     for feature in self.values:
-    #         hist, edges = np.histogram(feature, bins)
-    #         histograms.append((hist, edges))
+        histograms = []
+        
+        for feature in data:
+            feature = feature[~np.isnan(feature)]
             
-    #     return histograms
+            hist, edges = np.histogram(feature, bins)
+            histograms.append((hist, edges))
+            
+        return histograms
     
     
           

@@ -3,7 +3,7 @@ from collections import deque, Counter
 
 class DecisionTreeClassifier:
 
-    def __init__(self, max_depth, min_samples_split, max_features, criterion="Entropy", window_size = None):
+    def __init__(self, max_depth, min_samples_split, max_features, n_class=2, criterion="Entropy", window_size = None):
 
         if criterion not in ('Entropy','Gini'):
             raise ValueError('Criterion should be either Entropy or Gini')
@@ -11,6 +11,7 @@ class DecisionTreeClassifier:
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
         self.max_features = max_features
+        self.n_class = n_class
         self.criterion = criterion
         self.tree = None
 
