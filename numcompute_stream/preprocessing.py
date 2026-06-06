@@ -1,5 +1,5 @@
 import numpy as np
-from stats import StreamingStats
+from .stats import StreamingStats
 
 class Imputer:
     def __init__(self, strategy):
@@ -141,6 +141,7 @@ class StandardScaler:
         if self.n_features is None:
             self.n_features = X_chunk.shape[1]
         
+        self.stats.update_stats(X_chunk)
         self.mean, variance = self.stats.get_meanVar()
         std = np.sqrt(variance)
         self.std = std

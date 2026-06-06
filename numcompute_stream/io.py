@@ -1,16 +1,17 @@
 import numpy as np
+import csv
 
-def load_csv(fileName='',delimeter=',',skipheader=1):
+def load_csv(file_path='',delimiter=',',skipheader=1):
     try:
         data = np.genfromtxt(
-            fname=fileName,
-            delimiter=delimeter,
+            fname=file_path,
+            delimiter=delimiter,
             skip_header=skipheader,
             dtype=str
         )
         
         if data.size == 0:
-            raise ValueError(f"{fileName}"" is empty")
+            raise ValueError(f"{file_path}"" is empty")
         
         X = data[:,:-1]
         y = data[:,-1]
@@ -18,8 +19,37 @@ def load_csv(fileName='',delimeter=',',skipheader=1):
     
     except FileNotFoundError:
         print('There is no specific file')
-        raise FileNotFoundError(f"{fileName}"" doesn't exist")
+        raise FileNotFoundError(f"{file_path}"" doesn't exist")
 
-X, y = load_csv(fileName='adult.csv')
-print(X.shape)
-print(y.shape)
+def load_stream_csv(file_path='', chunk_size=1000):
+    try:
+        chunk = []
+        with open(file_path,'r') as f:
+            lines = csv.reader(f)
+            next(lines)
+
+            for line in lines:
+                chunk.append(line)
+
+                if len(chunk) == chunk_size:
+                    data_chunk = np.asarray(chunk)
+
+                    X = data_chunk[:,:-1]
+                    y = data_chunk[:,-1]
+                    
+                    chunk = []
+                    
+                    yield X, y
+            if chunk:
+                data_chunk = np.asarray(chunk)
+
+                X = data_chunk[:,:-1]
+                y = data_chunk[:,-1]
+                
+                yield X, y
+
+    except FileNotFoundError:
+        print('There is no specific file')
+        raise FileNotFoundError(f"{file_path}"" doesn't exist")
+
+

@@ -23,7 +23,11 @@ def compare_models(metric1, metric2, labels, save_path=None):
     plt.figure()
     y1 = np.asarray(metric1)
     y2 = np.asarray(metric2)
-    x = np.arange(1, max(len(y1)+1, len(y2)+1))
+    
+    if len(y1) != len(y2):
+        raise ValueError('Invalid shapes of metric1 and metric2')
+    
+    x = np.arange(1, len(y1)+1)
     
     plt.plot(x, y1, color='blue', marker='.',label=labels[0])
     plt.plot(x, y2, color='orange', marker='.',label=labels[1])
@@ -45,10 +49,11 @@ def plot_predictions_vs_ground_truth(y_true, y_pred, save_path=None):
     plt.figure()
     y_true = np.asarray(y_true)
     y_pred = np.asarray(y_pred)
-    x = np.arange(1, max(len(y_true)+1, len(y_pred)+1))
+    x_true = np.arange(1, len(y_true)+1)
+    x_pred = np.arange(1, len(y_pred)+1)
 
-    plt.scatter(x, y_true, c='blue', marker='o', label='True')
-    plt.scatter(x, y_pred, c='red', marker='o', label='Predictive')
+    plt.scatter(x_true, y_true, c='blue', marker='o', label='True')
+    plt.scatter(x_pred, y_pred, c='red', marker='o', label='Predictive')
 
     plt.title('Predictions vs Ground truth')
     plt.xlabel('Sample')

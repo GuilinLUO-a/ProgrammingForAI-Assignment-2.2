@@ -90,7 +90,3 @@ class StreamingStats:
             histograms.append((hist, edges))
             
         return histograms
-    
-    
-          
-        

@@ -25,6 +25,12 @@ class StreamMetrics:
         if y_true_chunk.shape != y_pred_chunk.shape:
             raise ValueError("The shape of two arrays are not the same")    
 
+        if np.any(y_true_chunk <0) or np.any(y_true_chunk >= self.n_class):
+            raise ValueError("Invalid class lable")
+        
+        if np.any(y_pred_chunk <0) or np.any(y_pred_chunk >= self.n_class):
+            raise ValueError("Invalid class lable")
+        
         cm = np.bincount(self.n_class * y_true_chunk + y_pred_chunk, 
                          minlength= self.n_class * self.n_class).reshape(self.n_class, self.n_class)
 
@@ -42,13 +48,12 @@ class StreamMetrics:
         if y_score_chunk is not None:
             y_score_chunk = np.asarray(y_score_chunk, dtype=float)
 
-            for yt, ys in zip(y_true_chunk, y_score_chunk):
-                self.y_true.append(yt)
-                self.y_score.append(ys)
+            self.y_true.extend(y_true_chunk)
+            self.y_score.extend(y_score_chunk)
 
-                if self.window_size is not None:
-                    self.rolling_true.append(yt)
-                    self.rolling_score.append(ys)
+            if self.window_size is not None:
+                self.rolling_true.append(y_true_chunk)
+                self.rolling_score.append(y_score_chunk)
 
         return self
 
@@ -63,6 +68,8 @@ class StreamMetrics:
             self.rolling_cm = deque(maxlen=self.window_size)
             self.rolling_true = deque(maxlen=self.window_size)
             self.rolling_score = deque(maxlen=self.window_size)
+        
+        return self
 
     def accuracy(self):
         if self.cm is None:
@@ -107,7 +114,7 @@ class StreamMetrics:
         return f1
     
     def _binary_auc(self, y_true, y_score):
-        if len(self.y_true) == 0:
+        if len(y_true) == 0:
             return 0.0
         
         y_true = np.asarray(y_true, dtype=float)
@@ -132,7 +139,7 @@ class StreamMetrics:
         
         # Binary class
         if self.n_class == 2:
-            return self._binary_auc(self.y_true, y_score)
+            return self._binary_auc(self.y_true, self.y_score)
         # Multi-class AUC
         else:
             y_true = np.asarray(self.y_true, dtype=float)
@@ -150,9 +157,7 @@ class StreamMetrics:
 
             return np.mean(aucs) if len(aucs) >0 else 0.0
             
-            
-    
-    def _rolling_cm(self):
+    def _get_rolling_cm(self):
         if self.rolling_cm is None:
             raise RuntimeError('You should input window_size first')
         
@@ -176,13 +181,16 @@ class StreamMetrics:
         if len(self.rolling_true) == 0:
             return 0.0
         
-        # Binary class
+        # Binary class AUC
         if self.n_class == 2:
-            return self._binary_auc(self.rolling_true, self.rolling_score)
+            y_true = np.concatenate(list(self.rolling_true))
+            y_score = np.concatenate(list(self.rolling_score))
+            
+            return self._binary_auc(y_true, y_score)
         # Multi-class AUC
         else:
-            y_true = np.asarray(self.rolling_true, dtype=float)
-            y_score = np.asarray(self.rolling_score, dtype=float)
+            y_true = np.concatenate(list(self.rolling_true))
+            y_score = np.concatenate(list(self.rolling_score))
             
             n_class = self.n_class
             aucs = []
@@ -191,7 +199,7 @@ class StreamMetrics:
                 binary_true = (y_true == k).astype(int)
                 auc_k = self._binary_auc(binary_true, y_score[:, k])
 
-                if auc_k > 0:
+                if not np.isnan(auc_k):
                     aucs.append(auc_k)
 
             return np.mean(aucs) if len(aucs) >0 else 0.0
@@ -204,19 +212,27 @@ class StreamMetrics:
             "accuracy": self.accuracy(),
             "precision": self.precision(),
             "recall": self.recall(),
-            "f1": self.f1(),
-            "auc":self.auc()
+            "f1": self.f1()
         }
         
+        if self.y_score:
+            result.update({
+                "auc":self.auc()
+            })
+        
         if self.window_size is not None:
-            accuracy, precision, recall, f1 = self._rolling_cm()
+            accuracy, precision, recall, f1 = self._get_rolling_cm()
             result.update({
             "rolling_accuracy": accuracy,
             "rolling_precision": precision,
             "rolling_recall": recall,
-            "rolling_f1": f1,
-            "rolling_auc":self.rolling_auc()
+            "rolling_f1": f1
             })
+            
+            if len(self.rolling_score) > 0:
+                result.update({
+                    "rolling_auc":self.rolling_auc()
+                })
 
         return result
     
