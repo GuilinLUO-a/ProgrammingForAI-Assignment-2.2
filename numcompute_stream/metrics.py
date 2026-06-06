@@ -123,11 +123,9 @@ class StreamMetrics:
         positive = y_score[y_true == 1]
         negative = y_score[y_true == 0]
 
-        # edge case
         if len(positive) == 0 or len(negative) == 0:
             return 0.0
 
-        # pairwise comparison
         comparisons = positive[:, None] > negative[None, :]
         ties = positive[:, None] == negative[None, :]
 

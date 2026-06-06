@@ -68,6 +68,9 @@ class StreamingStats:
     def get_quantiles(self,quantiles):
         if quantiles < 0 or quantiles > 1:
             raise ValueError("The quantile value should be either greater than or equal to zero or less than or equal to one ")
+        
+        if self.count is None:
+            raise RuntimeError('The data has not been input yet')
 
         if self.window_size is not None:
             data = np.concatenate(list(self.chunk_buffer), axis=0)
@@ -76,6 +79,9 @@ class StreamingStats:
         return np.quantile(self.chunk_values, quantiles, axis=1)
     
     def get_histograms(self, bins=5):
+        if self.count is None:
+            raise RuntimeError('The data has not been input yet')
+        
         if self.window_size is not None:
             data = np.concatenate(list(self.chunk_buffer), axis=0).T
         else:
