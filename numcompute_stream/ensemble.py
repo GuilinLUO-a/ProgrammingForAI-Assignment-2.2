@@ -2,7 +2,6 @@ import numpy as np
 from collections import Counter
 
 class EnsembleClassifier:
-
     def __init__(self, base_tree, n_estimators=5,  **tree_args):
         self.n_estimators = n_estimators
 

@@ -5,6 +5,7 @@ from numcompute_stream.pipeline import PipeLine, Preprocessor, LabelEncoder
 
 class TestPreprocessor(unittest.TestCase):
     def test_partial_fit(self):
+        """Test preprocessor partial fit"""
         X = np.array([
             [1,'good','HD',2],
             [2,'bad','D',2],
@@ -17,6 +18,7 @@ class TestPreprocessor(unittest.TestCase):
         self.assertEqual(X.shape[0], 3)
     
     def test_reset(self):
+        """Test preprocessor reset"""
         X = np.array([
             [1,'good','HD',2],
             [2,'bad','D',2],
@@ -29,6 +31,7 @@ class TestPreprocessor(unittest.TestCase):
         self.assertTrue(prepro.num_cols is None)
 
     def test_invalid_fit_raise(self):
+        """Test raise ValueError for invalid fit"""
         X = np.array([
         ])
         
@@ -38,6 +41,7 @@ class TestPreprocessor(unittest.TestCase):
             prepro.partial_fit(X)
             
     def test_invalid_transform_order_raise(self):
+        """Test raise RuntimeError for invalid transform order"""
         X = np.array([
             [1,'good','HD',2],
             [2,'bad','D',2],
@@ -51,6 +55,7 @@ class TestPreprocessor(unittest.TestCase):
             
 class TestLabelEncoder(unittest.TestCase):
     def test_partial_fit(self):
+        """Test label encoder partial fit"""
         y = np.array(['good', 'bad','good', 'bad'])
 
         le = LabelEncoder()
@@ -63,6 +68,7 @@ class TestLabelEncoder(unittest.TestCase):
         self.assertTrue(len(idx_to_class), 4)
 
     def test_transform(self):
+        """Test label encoder transform"""
         y = np.array(['good', 'bad','good', 'bad'])
 
         le = LabelEncoder()
@@ -72,6 +78,7 @@ class TestLabelEncoder(unittest.TestCase):
         self.assertIn(0, y_transform)
         
     def test_inverse_transform(self):
+        """Test inverse label encoder transform"""
         y = np.array(['good', 'bad','good', 'bad'])
 
         le = LabelEncoder()
@@ -82,6 +89,7 @@ class TestLabelEncoder(unittest.TestCase):
 
 class TestPipeLine(unittest.TestCase):
     def test_partial_fit(self):
+        """Test pipeline partial fit and predict"""
         pipe = PipeLine([
             ('preprocessor',Preprocessor()),
             ('model',DecisionTreeClassifier(max_depth=5, min_samples_split=2))

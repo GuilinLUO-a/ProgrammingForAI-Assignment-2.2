@@ -4,6 +4,7 @@ from numcompute_stream.stats import StreamingStats
 
 class TestStreamingStats(unittest.TestCase):
     def test_mean_variance(self):
+        """Test mean and variance"""
         X_chunk = np.array([[1, 1, 1, 1]])
         ss = StreamingStats()
         
@@ -16,6 +17,7 @@ class TestStreamingStats(unittest.TestCase):
         self.assertEqual(0.0, variance[0])
         
     def test_get_quantiles(self):
+        """Test get quantiles"""
         X_chunk = np.array([1, 2, 3, 4, 5]).reshape(-1, 1)
         ss = StreamingStats()
         
@@ -24,6 +26,7 @@ class TestStreamingStats(unittest.TestCase):
         self.assertEqual(3.0, q50[0])
         
     def test_get_histograms(self):
+        """Test get histograms"""
         X_chunk = np.array([1, 2, 3, 4, 5]).reshape(-1, 1)
         ss = StreamingStats()
         
@@ -36,6 +39,7 @@ class TestStreamingStats(unittest.TestCase):
         self.assertEqual(6, len(edges))
     
     def test_rolling_quantiles(self):
+        """Test rolling quantiles"""
         X_chunk = np.array([1, 2, 3, 4, 5]).reshape(-1, 1)
         X_chunk2 = np.array([6, 7, 8, 9, 10]).reshape(-1, 1)
         ss = StreamingStats(window_size=2)
@@ -49,6 +53,7 @@ class TestStreamingStats(unittest.TestCase):
         self.assertEqual(8.0, q50[0])
     
     def test_rolling_histogram(self):
+        """Test rolling histogram"""
         X_chunk = np.array([1, 2, 3, 4, 5]).reshape(-1, 1)
         X_chunk2= np.array([6, 7, 8, 9, 10]).reshape(-1, 1)
         ss = StreamingStats(window_size=2)
@@ -65,18 +70,21 @@ class TestStreamingStats(unittest.TestCase):
         self.assertEqual(6, len(edges))
     
     def test_wrong_order_mean_raise(self):
+        """Test raise RuntimeError for wrong order mean and variance"""
         ss = StreamingStats()
 
         with self.assertRaises(RuntimeError):
             ss.get_meanVar()
             
     def test_wrong_order_hist_raise(self):
+        """Test raise RuntimeError for wrong order histogram"""
         ss = StreamingStats()
 
         with self.assertRaises(RuntimeError):
             ss.get_histograms()
     
     def test_wrong_quantiles_raise(self):
+        """Test raise ValueError for wrong quantiles"""
         X_chunk = np.array([1, 2, 3, 4, 5]).reshape(-1, 1)
         ss = StreamingStats()
         

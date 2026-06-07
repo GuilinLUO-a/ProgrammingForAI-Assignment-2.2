@@ -22,6 +22,9 @@ def load_csv(file_path='',delimiter=',',skipheader=1):
         raise FileNotFoundError(f"{file_path}"" doesn't exist")
 
 def load_stream_csv(file_path='', chunk_size=1000):
+    '''
+    Load a CSV file in chunks and yield the features and labels for each chunk.
+    '''
     try:
         chunk = []
         with open(file_path,'r') as f:
